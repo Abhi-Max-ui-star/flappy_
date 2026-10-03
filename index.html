@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Flappy Bird 3.1 - Arcade Supreme</title>
+<style>
+*{
+    box-sizing:border-box;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+}
+
+body{
+    background:#090d16;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-family:Arial,Segoe UI,sans-serif;
+}
+
+#wrap{
+    position:relative;
+    width:min(400px,100vw);
+    height:min(700px,100vh);
+    max-width:400px;
+    max-height:700px;
+    overflow:hidden;
+    border-radius:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.8);
+}
+
+canvas{
+    display:block;
+    width:100%;
+    height:100%;
+    background:#70c5ce;
+}
+
+.ui{
+    position:absolute;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    pointer-events:none;
+}
+
+.card{
+    width:90%;
+    max-width:350px;
+    max-height:90%;
+    overflow-y:auto;
+    padding:22px;
+    border-radius:22px;
+    text-align:center;
+    background:rgba(255,255,255,.96);
+    box-shadow:0 15px 40px rgba(0,0,0,.45);
+    pointer-events:auto;
+}
+
+h1{
+    margin:0;
+    font-size:30px;
+    color:#111827;
+}
+
+h2{
+    margin:4px 0 12px;
+    color:#374151;
+}
+
+.small{
+    font-size:12px;
+    color:#6b7280;
+}
+
+.btn{
+    border:0;
+    border-radius:25px;
+    padding:12px 22px;
+    margin:6px;
+    color:white;
+    background:linear-gradient(135deg,#f59e0b,#d97706);
+    font-size:16px;
+    font-weight:900;
+    cursor:pointer;
+    box-shadow:0 5px 15px rgba(217,119,6,.35);
+}
+
+.btn:active{
+    transform:scale(.94);
+}
+
+.blue{ background:linear-gradient(135deg,#3b82f6,#1d4ed8); }
+.green{ background:linear-gradient(135deg,#22c55e,#15803d); }
+.red{ background:linear-gradient(135deg,#ef4444,#b91c1c); }
+.dark{ background:linear-gradient(135deg,#374151,#111827); }
+
+.menuGrid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:12px;
+}
+
+.menuGrid .btn{
+    margin:0;
+    font-size:14px;
+}
+
+.hidden{
+    display:none !important;
+}
+
+.coinBank{
+    color:#d97706;
+    font-weight:900;
+    margin:8px;
+}
+
+.skinGrid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+}
+
+.skin{
+    position:relative;
+    padding:9px 3px;
+    border:2px solid #e5e7eb;
+    border-radius:12px;
+    background:#f9fafb;
+    cursor:pointer;
+}
+
+.skin.active{
+    border-color:#f59e0b;
+    background:#fef3c7;
+}
+
+.skin.locked{
+    opacity:.55;
+}
+
+.skinEmoji{ font-size:28px; }
+.skinName{ font-size:11px; font-weight:bold; }
+.price{ font-size:10px; color:#b45309; }
+
+.shopItem{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:#f3f4f6;
+    margin:6px 0;
+    padding:10px;
+    border-radius:12px;
+}
+
+.achievement{
+    text-align:left;
+    padding:9px;
+    margin:5px 0;
+    border-radius:10px;
+    background:#f3f4f6;
+    font-size:13px;
+}
+
+.achievement.done{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.stat{
+    display:flex;
+    justify-content:space-between;
+    padding:8px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+#pauseBtn, #soundBtn{
+    position:absolute;
+    top:12px;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    border:2px solid rgba(255,255,255,.7);
+    background:rgba(0,0,0,.4);
+    color:white;
+    font-size:17px;
+    z-index:20;
+    display:none;
+}
+
+#pauseBtn{ right:12px; }
+#soundBtn{ right:58px; }
+
+#levelText{
+    position:absolute;
+    top:67px;
+    left:0;
+    width:100%;
+    text-align:center;
+    color:white;
+    font-size:13px;
+    font-weight:900;
+    text-shadow:2px 2px #000;
+    z-index:5;
+    pointer-events:none;
+}
+
+#flapBtn{
+    position:absolute;
+    bottom:22px;
+    left:50%;
+    transform:translateX(-50%);
+    width:145px;
+    height:52px;
+    border:3px solid white;
+    border-radius:30px;
+    background:rgba(0,0,0,.35);
+    color:white;
+    font-size:19px;
+    font-weight:900;
+    z-index:10;
+    display:none;
+}
+
+#toast{
+    position:absolute;
+    top:105px;
+    left:50%;
+    transform:translateX(-50%);
+    padding:10px 16px;
+    border-radius:20px;
+    background:rgba(0,0,0,.7);
+    color:white;
+    font-weight:bold;
+    font-size:14px;
+    z-index:30;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity 0.2s ease;
+}
+
+#pauseOverlay{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    font-size:35px;
+    font-weight:900;
+    z-index:15;
+}
+
+@media(max-height:600px){
+    #wrap{ height:100vh; border-radius:0; }
+    .card{ padding:15px; }
+    h1{ font-size:24px; }
+}
+</style>
+</head>
+<body>
+
+<div id="wrap">
+    <canvas id="game" width="400" height="700"></canvas>
+    <button id="soundBtn">🔊</button>
+    <button id="pauseBtn">⏸</button>
+    <div id="levelText"></div>
+    <button id="flapBtn">🐤 FLAP!</button>
+    <div id="toast"></div>
+    <div id="pauseOverlay">⏸ PAUSED</div>
+
+    <!-- MAIN MENU -->
+    <div id="mainMenu" class="ui">
+        <div class="card">
+            <h1>🐤 FLAPPY</h1>
+            <h2>ARCADE SUPREME</h2>
+            <p class="small">FLAPPY BIRD 3.1</p>
+            <div class="coinBank">🪙 <span id="menuCoins">0</span> COINS</div>
+            <p>🏆 Best Score: <b id="menuBest">0</b></p>
+            <button class="btn" id="playBtn">▶ PLAY</button>
+            <div class="menuGrid">
+                <button class="btn blue" id="skinsBtn">🐤 SKINS</button>
+                <button class="btn green" id="shopBtn">🛒 SHOP</button>
+                <button class="btn dark" id="achievementBtn">🏆 ACHIEVEMENTS</button>
+                <button class="btn dark" id="statsBtn">📊 STATS</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SKINS -->
+    <div id="skinsScreen" class="ui hidden">
+        <div class="card">
+            <h1>🐤 SKINS</h1>
+            <div class="coinBank">🪙 <span class="screenCoins">0</span></div>
+            <div id="skinGrid" class="skinGrid"></div>
+            <button class="btn dark backBtn">← BACK</button>
+        </div>
+    </div>
+
+    <!-- SHOP -->
+    <div id="shopScreen" class="ui hidden">
+        <div class="card">
+            <h1>🛒 SHOP</h1>
+            <div class="coinBank">🪙 <span class="screenCoins">0</span></div>
+            <div id="shopList"></div>
+            <button class="btn dark backBtn">← BACK</button>
+        </div>
+    </div>
+
+    <!-- ACHIEVEMENTS -->
+    <div id="achievementScreen" class="ui hidden">
+        <div class="card">
+            <h1>🏆 ACHIEVEMENTS</h1>
+            <div id="achievementList"></div>
+            <button class="btn dark backBtn">← BACK</button>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div id="statsScreen" class="ui hidden">
+        <div class="card">
+            <h1>📊 STATISTICS</h1>
+            <div id="statsList"></div>
+            <button class="btn dark backBtn">← BACK</button>
+        </div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div id="gameOverScreen" class="ui hidden">
+        <div class="card">
+            <h1 style="color:#dc2626">GAME OVER</h1>
+            <p id="finalScore"></p>
+            <p id="finalCoins"></p>
+            <p id="finalCombo"></p>
+            <p id="finalBest"></p>
+            <div id="newBest" class="coinBank hidden">🎉 NEW HIGH SCORE!</div>
+            <button class="btn" id="againBtn">🔄 PLAY AGAIN</button>
+            <button class="btn dark" id="menuBtn">🏠 MENU</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const W = 400;
+const H = 700;
+const GROUND = 620;
+
+const mainMenu = document.getElementById("mainMenu");
+const skinsScreen = document.getElementById("skinsScreen");
+const shopScreen = document.getElementById("shopScreen");
+const achievementScreen = document.getElementById("achievementScreen");
+const statsScreen = document.getElementById("statsScreen");
+const gameOverScreen = document.getElementById("gameOverScreen");
+
+const pauseBtn = document.getElementById("pauseBtn");
+const soundBtn = document.getElementById("soundBtn");
+const flapBtn = document.getElementById("flapBtn");
+const pauseOverlay = document.getElementById("pauseOverlay");
+const levelText = document.getElementById("levelText");
+const toast = document.getElementById("toast");
+
+let audioCtx = null;
+let soundEnabled = true;
+
+function initAudio(){
+    if(!audioCtx){
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if(audioCtx.state === "suspended"){
+        audioCtx.resume();
+    }
+}
+
+function sound(type){
+    if(!soundEnabled) return;
+    initAudio();
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    const t = audioCtx.currentTime;
+
+    if(type === "jump"){
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(350,t);
+        osc.frequency.exponentialRampToValueAtTime(750,t+.08);
+        gain.gain.setValueAtTime(.18,t);
+        gain.gain.exponentialRampToValueAtTime(.01,t+.09);
+        osc.start(t);
+        osc.stop(t+.09);
+    }
+    if(type === "coin"){
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(700,t);
+        osc.frequency.setValueAtTime(1100,t+.08);
+        gain.gain.setValueAtTime(.2,t);
+        gain.gain.exponentialRampToValueAtTime(.01,t+.18);
+        osc.start(t);
+        osc.stop(t+.18);
+    }
+    if(type === "score"){
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(500,t);
+        osc.frequency.setValueAtTime(700,t+.08);
+        gain.gain.setValueAtTime(.18,t);
+        gain.gain.exponentialRampToValueAtTime(.01,t+.18);
+        osc.start(t);
+        osc.stop(t+.18);
+    }
+    if(type === "power"){
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(300,t);
+        osc.frequency.exponentialRampToValueAtTime(900,t+.25);
+        gain.gain.setValueAtTime(.2,t);
+        gain.gain.exponentialRampToValueAtTime(.01,t+.25);
+        osc.start(t);
+        osc.stop(t+.25);
+    }
+    if(type === "level"){
+        osc.type = "square";
+        osc.frequency.setValueAtTime(400,t);
+        osc.frequency.setValueAtTime(600,t+.1);
+        osc.frequency.setValueAtTime(800,t+.2);
+        gain.gain.setValueAtTime(.15,t);
+        gain.gain.exponentialRampToValueAtTime(.01,t+.35);
+        osc.start(t);
+        osc.stop(t+.35);
+    }
+    if(type === "hit"){
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(180,t);
+        osc.frequency.linearRampToValueAtTime(30,t+.25);
+        gain.gain.setValueAtTime(.25,t);
+        gain.gain.exponentialRampToValueAtTime(.01,t+.25);
+        osc.start(t);
+        osc.stop(t+.25);
+    }
+}
+
+function loadNumber(key, defaultValue=0){
+    const value = localStorage.getItem(key);
+    return value === null ? defaultValue : Number(value);
+}
+
+function save(){
+    localStorage.setItem("flappy_bank", totalBank);
+    localStorage.setItem("flappy_best", best);
+    localStorage.setItem("flappy_games", stats.games);
+    localStorage.setItem("flappy_total_coins", stats.totalCoins);
+    localStorage.setItem("flappy_best_combo", stats.bestCombo);
+    localStorage.setItem("flappy_pipes", stats.pipes);
+    localStorage.setItem("flappy_skin", selectedSkin);
+    localStorage.setItem("flappy_unlocked", JSON.stringify(unlockedSkins));
+    localStorage.setItem("flappy_achievements", JSON.stringify(achievements));
+    localStorage.setItem("flappy_upgrades", JSON.stringify(upgrades));
+}
+
+let totalBank = loadNumber("flappy_bank",0);
+let best = loadNumber("flappy_best",0);
+let stats = {
+    games: loadNumber("flappy_games",0),
+    totalCoins: loadNumber("flappy_total_coins",0),
+    bestCombo: loadNumber("flappy_best_combo",0),
+    pipes: loadNumber("flappy_pipes",0)
+};
+
+let selectedSkin = localStorage.getItem("flappy_skin") || "yellow";
+let unlockedSkins = JSON.parse(localStorage.getItem("flappy_unlocked") || '["yellow"]');
+let achievements = JSON.parse(localStorage.getItem("flappy_achievements") || '{}');
+let upgrades = JSON.parse(localStorage.getItem("flappy_upgrades") || '{}');
+
+const skins = {
+    yellow: { name:"Classic", emoji:"🐤", cost:0, main:"#facc15", wing:"#ffffff", trail:"#ffffff" },
+    fire:   { name:"Fire", emoji:"🔥", cost:50, main:"#ef4444", wing:"#f97316", trail:"#facc15" },
+    ice:    { name:"Ice", emoji:"❄️", cost:100, main:"#38bdf8", wing:"#2563eb", trail:"#bae6fd" },
+    electric:{ name:"Electric", emoji:"⚡", cost:150, main:"#a855f7", wing:"#facc15", trail:"#e879f9" },
+    gold:   { name:"Golden", emoji:"👑", cost:250, main:"#f59e0b", wing:"#fef08a", trail:"#fef08a" },
+    rainbow:{ name:"Rainbow", emoji:"🌈", cost:400, main:"#ec4899", wing:"#8b5cf6", trail:"#22d3ee" }
+};
+
+const shopItems = [
+    { id:"doubleCoins", name:"🪙 Coin Bonus", description:"Permanent +25% coin value", cost:300 },
+    { id:"extraShield", name:"🛡️ Shield Plus", description:"Shield lasts longer", cost:400 },
+    { id:"magnet", name:"🧲 Coin Magnet", description:"Coin magnets last longer", cost:500 }
+];
+
+const achievementData = [
+    { id:"firstFlight", name:"First Flight", description:"Play your first game", check:()=>stats.games >= 1 },
+    { id:"score10", name:"Getting Started", description:"Reach score 10", check:()=>best >= 10 },
+    { id:"score50", name:"Flappy Pro", description:"Reach score 50", check:()=>best >= 50 },
+    { id:"score100", name:"Arcade Legend", description:"Reach score 100", check:()=>best >= 100 },
+    { id:"coins25", name:"Coin Collector", description:"Collect 25 coins", check:()=>stats.totalCoins >= 25 },
+    { id:"coins100", name:"Coin Master", description:"Collect 100 coins", check:()=>stats.totalCoins >= 100 },
+    { id:"combo10", name:"Combo Master", description:"Reach a 10 pipe combo", check:()=>stats.bestCombo >= 10 },
+    { id:"gold", name:"Golden Bird", description:"Unlock the Golden Bird", check:()=>unlockedSkins.includes("gold") }
+];
+
+function updateAchievements(){
+    achievementData.forEach(a=>{
+        if(a.check() && !achievements[a.id]){
+            achievements[a.id] = true;
+            showToast("🏆 ACHIEVEMENT UNLOCKED!");
+        }
+    });
+    save();
+}
+
+let running = false;
+let paused = false;
+let score = 0;
+let coins = 0;
+let combo = 0;
+let level = 1;
+let frame = 0;
+
+let shield = false;
+let shieldTimer = 0;
+let magnetTimer = 0;
+let slowTimer = 0;
+let invincibleTimer = 0; // Patch 3.1: Add invincibility timer
+
+let shake = 0;
+let flash = 0;
+let environment = "day";
+
+let pipes = [];
+let coinsList = [];
+let powerups = [];
+let particles = [];
+let popups = [];
+
+let clouds = [
+    {x:30,y:100,s:1,speed:.25},
+    {x:190,y:150,s:.8,speed:.4},
+    {x:350,y:80,s:1.2,speed:.2}
+];
+
+const bird = { x:90, y:300, v:0, rotation:0, r:13 };
+const gravity = .34;
+const jump = -6.5;
+
+function hideAllScreens(){
+    mainMenu.classList.add("hidden");
+    skinsScreen.classList.add("hidden");
+    shopScreen.classList.add("hidden");
+    achievementScreen.classList.add("hidden");
+    statsScreen.classList.add("hidden");
+    gameOverScreen.classList.add("hidden");
+}
+
+function showMenu(){
+    running = false;
+    hideAllScreens();
+    mainMenu.classList.remove("hidden");
+    pauseBtn.style.display="none";
+    soundBtn.style.display="none";
+    flapBtn.style.display="none";
+    updateMenu();
+}
+
+function updateMenu(){
+    document.getElementById("menuCoins").textContent = totalBank;
+    document.getElementById("menuBest").textContent = best;
+}
+
+function showToast(text){
+    toast.textContent=text;
+    toast.style.opacity="1";
+    clearTimeout(showToast.timer);
+    showToast.timer=setTimeout(()=>{
+        toast.style.opacity="0";
+    },1500);
+}
+
+function renderSkins(){
+    const grid = document.getElementById("skinGrid");
+    grid.innerHTML="";
+
+    Object.keys(skins).forEach(id=>{
+        const s=skins[id];
+        const unlocked = unlockedSkins.includes(id);
+        const div=document.createElement("div");
+        div.className="skin "+(selectedSkin===id?"active ":"")+(!unlocked?"locked":"");
+        div.innerHTML=`
+            <div class="skinEmoji">${s.emoji}</div>
+            <div class="skinName">${s.name}</div>
+            <div class="price">${unlocked?"UNLOCKED":"🪙 "+s.cost}</div>
+        `;
+        div.onclick=()=>selectSkin(id);
+        grid.appendChild(div);
+    });
+
+    document.querySelectorAll(".screenCoins").forEach(el=>{
+        el.textContent=totalBank;
+    });
+}
+
+function selectSkin(id){
+    const s=skins[id];
+    if(!unlockedSkins.includes(id)){
+        if(totalBank<s.cost){
+            showToast(`Need ${s.cost-totalBank} more coins`);
+            return;
+        }
+        totalBank-=s.cost;
+        unlockedSkins.push(id);
+        showToast(`${s.emoji} ${s.name} unlocked!`);
+    }
+    selectedSkin=id;
+    save();
+    renderSkins();
+    updateMenu();
+}
+
+function renderShop(){
+    const list = document.getElementById("shopList");
+    list.innerHTML="";
+
+    shopItems.forEach(item=>{
+        const owned=upgrades[item.id];
+        const div=document.createElement("div");
+        div.className="shopItem";
+        div.innerHTML=`
+            <div>
+                <b>${item.name}</b><br>
+                <span class="small">${item.description}</span>
+            </div>
+            <button class="btn ${owned?"dark":""}" ${owned?"disabled":""}>
+                ${owned?"OWNED":"🪙 "+item.cost}
+            </button>
+        `;
+
+        const button=div.querySelector("button");
+        if(!owned){
+            button.onclick=()=>{
+                if(totalBank<item.cost){
+                    showToast("Not enough coins!");
+                    return;
+                }
+                totalBank-=item.cost;
+                upgrades[item.id]=true;
+                save();
+                renderShop();
+                updateMenu();
+                showToast("✅ Upgrade purchased!");
+            };
+        }
+        list.appendChild(div);
+    });
+
+    document.querySelectorAll(".screenCoins").forEach(el=>{
+        el.textContent=totalBank;
+    });
+}
+
+function renderAchievements(){
+    const list = document.getElementById("achievementList");
+    list.innerHTML="";
+    achievementData.forEach(a=>{
+        const done=achievements[a.id];
+        const div=document.createElement("div");
+        div.className="achievement "+(done?"done":"");
+        div.innerHTML=`${done?"✅":"🔒"} <b>${a.name}</b><br><span>${a.description}</span>`;
+        list.appendChild(div);
+    });
+}
+
+function renderStats(){
+    const list = document.getElementById("statsList");
+    list.innerHTML=`
+        <div class="stat"><span>🏆 Best Score</span><b>${best}</b></div>
+        <div class="stat"><span>🎮 Games Played</span><b>${stats.games}</b></div>
+        <div class="stat"><span>🪙 Total Coins</span><b>${stats.totalCoins}</b></div>
+        <div class="stat"><span>🔥 Best Combo</span><b>${stats.bestCombo}</b></div>
+        <div class="stat"><span>🟩 Pipes Passed</span><b>${stats.pipes}</b></div>
+        <div class="stat"><span>🐤 Current Skin</span><b>${skins[selectedSkin].name}</b></div>
+    `;
+}
+
+document.getElementById("playBtn").onclick=()=>{ initAudio(); startGame(); };
+document.getElementById("againBtn").onclick=()=>{ initAudio(); startGame(); };
+document.getElementById("menuBtn").onclick=showMenu;
+
+document.getElementById("skinsBtn").onclick=()=>{
+    hideAllScreens();
+    skinsScreen.classList.remove("hidden");
+    renderSkins();
+};
+
+document.getElementById("shopBtn").onclick=()=>{
+    hideAllScreens();
+    shopScreen.classList.remove("hidden");
+    renderShop();
+};
+
+document.getElementById("achievementBtn").onclick=()=>{
+    hideAllScreens();
+    achievementScreen.classList.remove("hidden");
+    renderAchievements();
+};
+
+document.getElementById("statsBtn").onclick=()=>{
+    hideAllScreens();
+    statsScreen.classList.remove("hidden");
+    renderStats();
+};
+
+document.querySelectorAll(".backBtn").forEach(btn=>{ btn.onclick=showMenu; });
+
+soundBtn.onclick=()=>{
+    soundEnabled=!soundEnabled;
+    soundBtn.textContent=soundEnabled?"🔊":"🔇";
+};
+
+pauseBtn.onclick=togglePause;
+
+function togglePause(){
+    if(!running) return;
+    paused=!paused;
+    pauseBtn.textContent=paused?"▶":"⏸";
+    pauseOverlay.style.display=paused?"flex":"none";
+    if(!paused){
+        requestAnimationFrame(loop);
+    }
+}
+
+function startGame(){
+    hideAllScreens();
+    score=0;
+    coins=0;
+    combo=0;
+    level=1;
+    frame=0;
+
+    shield=false;
+    shieldTimer=0;
+    magnetTimer=0;
+    slowTimer=0;
+    invincibleTimer=0;
+
+    shake=0;
+    flash=0;
+
+    pipes=[];
+    coinsList=[];
+    powerups=[];
+    particles=[];
+    popups=[];
+
+    bird.y=300;
+    bird.v=0;
+    bird.rotation=0;
+
+    spawnPipe(450);
+    spawnPipe(680);
+
+    running=true;
+    paused=false;
+    stats.games++;
+
+    save();
+
+    pauseBtn.style.display="block";
+    soundBtn.style.display="block";
+    flapBtn.style.display="block";
+    levelText.textContent="LEVEL 1 • DAY";
+
+    loop();
+}
+
+function flap(){
+    if(!running || paused) return;
+    bird.v=jump;
+    sound("jump");
+    createParticles(bird.x-10, bird.y, 4, skins[selectedSkin].trail);
+}
+
+flapBtn.onclick=flap;
+
+canvas.addEventListener("touchstart",e=>{
+    e.preventDefault();
+    flap();
+},{passive:false});
+
+canvas.addEventListener("mousedown",(e)=>{
+    if ('ontouchstart' in window && e.detail > 0) return;
+    flap();
+});
+
+window.addEventListener("keydown",e=>{
+    if(e.code==="Space" || e.code==="ArrowUp"){
+        e.preventDefault();
+        if(!running){
+            startGame();
+        }else{
+            flap();
+        }
+    }
+    if(e.code==="KeyP"){
+        togglePause();
+    }
+});
+
+function updateLevel(){
+    const newLevel = Math.floor(score/20)+1;
+    if(newLevel!==level){
+        level=newLevel;
+        sound("level");
+        flash=8;
+        showToast(`🔥 LEVEL ${level}!`);
+    }
+
+    if(score<20){
+        environment="day";
+    }else if(score<40){
+        environment="sunset";
+    }else if(score<60){
+        environment="night";
+    }else{
+        environment="space";
+    }
+    levelText.textContent = `LEVEL ${level} • ${environment.toUpperCase()}`;
+}
+
+function spawnPipe(x){
+    const gap = Math.max(110, 150-score*.25);
+    const margin=75;
+    const gapY=margin+Math.random()*(GROUND-margin*2-gap);
+
+    pipes.push({ x:x, gapY:gapY, gap:gap, passed:false });
+    const random=Math.random();
+
+    if(random<.45){
+        coinsList.push({ x:x+30, y:gapY+gap/2, collected:false, rotation:0 });
+    }
+
+    if(random>.82){
+        powerups.push({
+            x:x+30,
+            y:gapY+gap/2,
+            type: Math.random()<.65 ? "shield" : "magnet",
+            collected:false
+        });
+    }
+}
+
+function update(){
+    frame++;
+    if(shake>0) shake--;
+    if(flash>0) flash--;
+
+    // Patch 3.1: Timer updates
+    if(shield){
+        shieldTimer--;
+        if(shieldTimer<=0){ shield=false; }
+    }
+    if(magnetTimer>0) magnetTimer--;
+    if(slowTimer>0) slowTimer--;
+    if(invincibleTimer>0) invincibleTimer--;
+
+    const speed = (2.2+Math.min(score*.045,2)) * (slowTimer>0?.55:1);
+
+    bird.v+=gravity;
+    bird.y+=bird.v;
+    bird.rotation = bird.v<0 ? Math.max(-.45,bird.rotation-.07) : Math.min(1.2,bird.rotation+.05);
+
+    // Patch 3.1: Updated Ground / Ceiling collision block
+    if(bird.y-bird.r<0 || bird.y+bird.r>GROUND){
+        if(shield){
+            shield=false;
+            invincibleTimer=120;
+            bird.v=-5;
+            showToast("🛡️ SAVED!");
+            sound("power");
+        }else if(invincibleTimer<=0){
+            gameOver();
+            return;
+        }
+    }
+
+    clouds.forEach(c=>{
+        c.x-=c.speed;
+        if(c.x<-80){ c.x=450; }
+    });
+
+    // Patch 3.1: Updated Pipe collision block
+    pipes.forEach(p=>{
+        p.x-=speed;
+        const inX = bird.x+bird.r>p.x && bird.x-bird.r<p.x+60;
+        const inY = bird.y-bird.r<p.gapY || bird.y+bird.r>p.gapY+p.gap;
+
+        if(inX && inY){
+            if(shield){
+                shield=false;
+                invincibleTimer=120;
+                p.gapY=-999;
+                showToast("🛡️ SHIELD SMASH!");
+                sound("power");
+                shake=10;
+            }else if(invincibleTimer<=0){
+                gameOver();
+                return;
+            }
+        }
+
+        if(!p.passed && p.x+60<bird.x){
+            p.passed=true;
+            score++;
+            combo++;
+            stats.pipes++;
+            if(combo>stats.bestCombo){ stats.bestCombo=combo; }
+            sound("score");
+            addPopup("+1", bird.x, bird.y-25, "#ffffff");
+
+            if(combo%5===0){
+                score+=2;
+                addPopup(`🔥 COMBO x${combo}`, bird.x, bird.y-50, "#fbbf24");
+            }
+            updateLevel();
+            updateAchievements();
+        }
+    });
+
+    if(pipes.length && pipes[0].x<-80){
+        pipes.shift();
+        spawnPipe(pipes[pipes.length-1].x+220);
+    }
+
+    coinsList.forEach(c=>{
+        c.x-=speed;
+        c.rotation+=.12;
+
+        let distance=Math.hypot(bird.x-c.x, bird.y-c.y);
+        if(magnetTimer>0 && distance<120){
+            c.x+=(bird.x-c.x)*.08;
+            c.y+=(bird.y-c.y)*.08;
+        }
+
+        const radius = magnetTimer>0 ? bird.r+18 : bird.r+11;
+
+        if(!c.collected && distance<radius){
+            c.collected=true;
+            let value = upgrades.doubleCoins ? 2 : 1;
+            coins+=value;
+            stats.totalCoins+=value;
+            sound("coin");
+            addPopup(`+${value} 🪙`, c.x, c.y-10, "#fbbf24");
+            createParticles(c.x, c.y, 10, "#fbbf24");
+            updateAchievements();
+        }
+    });
+
+    coinsList=coinsList.filter(c=>c.x>-40&&!c.collected);
+
+    powerups.forEach(p=>{
+        p.x-=speed;
+        const distance=Math.hypot(bird.x-p.x, bird.y-p.y);
+
+        if(!p.collected && distance<bird.r+16){
+            p.collected=true;
+            sound("power");
+            if(p.type==="shield"){
+                shield=true;
+                shieldTimer = upgrades.extraShield ? 480 : 300;
+                showToast("🛡️ SHIELD ACTIVE!");
+            }else{
+                magnetTimer = upgrades.magnet ? 600 : 420;
+                showToast("🧲 MAGNET ACTIVE!");
+            }
+            createParticles(p.x, p.y, 15, "#60a5fa");
+        }
+    });
+
+    powerups=powerups.filter(p=>p.x>-40&&!p.collected);
+
+    particles.forEach(p=>{
+        p.x+=p.vx; p.y+=p.vy;
+        p.vy+=.03; p.life-=.035;
+    });
+    particles=particles.filter(p=>p.life>0);
+
+    popups.forEach(p=>{
+        p.y+=p.vy; p.life-=.025;
+    });
+    popups=popups.filter(p=>p.life>0);
+
+    save();
+}
+
+function gameOver(){
+    running=false;
+    sound("hit");
+    shake=18;
+
+    totalBank+=coins;
+    let newRecord=false;
+    if(score>best){
+        best=score;
+        newRecord=true;
+    }
+
+    save();
+    updateAchievements();
+
+    document.getElementById("finalScore").textContent=`🏆 Score: ${score}`;
+    document.getElementById("finalCoins").textContent=`🪙 Coins: +${coins} | Bank: ${totalBank}`;
+    document.getElementById("finalCombo").textContent=`🔥 Best Combo: ${combo}`;
+    document.getElementById("finalBest").textContent=`⭐ Best Score: ${best}`;
+    document.getElementById("newBest").classList.toggle("hidden", !newRecord || score===0);
+
+    pauseBtn.style.display="none";
+    soundBtn.style.display="none";
+    flapBtn.style.display="none";
+    gameOverScreen.classList.remove("hidden");
+}
+
+function createParticles(x, y, amount, color){
+    for(let i=0;i<amount;i++){
+        particles.push({
+            x:x, y:y,
+            vx:(Math.random()-.5)*4,
+            vy:(Math.random()-.5)*4,
+            life:1, color:color
+        });
+    }
+}
+
+function addPopup(text, x, y, color){
+    popups.push({ text:text, x:x, y:y, vy:-1.2, life:1, color:color });
+}
+
+function drawBackground(){
+    let top, bottom;
+    if(environment==="day"){ top="#38bdf8"; bottom="#bae6fd"; }
+    else if(environment==="sunset"){ top="#f97316"; bottom="#fda4af"; }
+    else if(environment==="night"){ top="#0f172a"; bottom="#312e81"; }
+    else{ top="#020617"; bottom="#172554"; }
+
+    const gradient=ctx.createLinearGradient(0,0,0,GROUND);
+    gradient.addColorStop(0,top);
+    gradient.addColorStop(1,bottom);
+    ctx.fillStyle=gradient;
+    ctx.fillRect(0,0,W,H);
+
+    if(environment==="day" || environment==="sunset"){
+        ctx.fillStyle=environment==="day"?"rgba(255,255,180,.8)":"rgba(255,180,80,.8)";
+        ctx.beginPath();
+        ctx.arc(320, 110, 35, 0, Math.PI*2);
+        ctx.fill();
+    }
+
+    if(environment==="night"){
+        ctx.fillStyle="#fef3c7";
+        ctx.beginPath();
+        ctx.arc(320, 100, 28, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle="#0f172a";
+        ctx.beginPath();
+        ctx.arc(332, 92, 25, 0, Math.PI*2);
+        ctx.fill();
+    }
+
+    if(environment==="space"){
+        ctx.fillStyle="white";
+        for(let i=0;i<35;i++){
+            const x=(i*83+frame*.2)%400;
+            const y=(i*47)%400;
+            ctx.fillRect(x,y,2,2);
+        }
+    }
+
+    if(environment==="day" || environment==="sunset"){
+        clouds.forEach(cl=>{
+            ctx.save();
+            ctx.translate(cl.x, cl.y);
+            ctx.scale(cl.s, cl.s);
+            ctx.fillStyle="rgba(255,255,255,.7)";
+            ctx.beginPath();
+            ctx.arc(0,0, 18, 0, Math.PI*2);
+            ctx.arc(20,-7, 23, 0, Math.PI*2);
+            ctx.arc(42,0, 18, 0, Math.PI*2);
+            ctx.fill();
+            ctx.restore();
+        });
+    }
+
+    ctx.fillStyle = environment==="night" || environment==="space" ? "#111827" : "rgba(59,130,246,.35)";
+    for(let i=0; i<8; i++){
+        const x = i*60 - (frame*.25)%60;
+        const height = 50+(i%4)*20;
+        ctx.fillRect(x, GROUND-height-20, 45, height);
+    }
+
+    ctx.fillStyle="#eab308";
+    ctx.fillRect(0, GROUND, W, H-GROUND);
+    ctx.fillStyle="#22c55e";
+    ctx.fillRect(0, GROUND, W, 14);
+}
+
+function drawPipe(x, gapY, gap){
+    const w=60;
+    const gradient=ctx.createLinearGradient(x,0,x+w,0);
+    gradient.addColorStop(0,"#16a34a");
+    gradient.addColorStop(.45,"#4ade80");
+    gradient.addColorStop(1,"#15803d");
+
+    ctx.fillStyle=gradient;
+    ctx.strokeStyle="#064e3b";
+    ctx.lineWidth=3;
+    const bottom=gapY+gap;
+
+    if(gapY>0){
+        ctx.fillRect(x,0,w,gapY);
+        ctx.strokeRect(x,0,w,gapY);
+        ctx.fillRect(x-5, gapY-22, w+10, 22);
+        ctx.strokeRect(x-5, gapY-22, w+10, 22);
+    }
+
+    ctx.fillRect(x, bottom, w, GROUND-bottom);
+    ctx.strokeRect(x, bottom, w, GROUND-bottom);
+    ctx.fillRect(x-5, bottom, w+10, 22);
+    ctx.strokeRect(x-5, bottom, w+10, 22);
+}
+
+function drawBird(){
+    const s = skins[selectedSkin];
+    ctx.save();
+    ctx.translate(bird.x, bird.y);
+    ctx.rotate(bird.rotation);
+
+    // Trail
+    if(selectedSkin !== "yellow"){
+        ctx.globalAlpha = 0.35;
+        ctx.fillStyle = s.trail;
+        ctx.beginPath();
+        ctx.arc(-17, 5, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+    }
+
+    // Shield effect
+    if(shield){
+        const pulse = Math.sin(frame * 0.2) * 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, 24 + pulse, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(59,130,246,.2)";
+        ctx.strokeStyle = "#60a5fa";
+        ctx.lineWidth = 2;
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    // Patch 3.1: Golden Protection Ring Effect during invincibility period
+    if(invincibleTimer > 0){
+        const pulse = Math.sin(frame * 0.3) * 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, 22 + pulse, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(251, 191, 36, ${Math.min(1, invincibleTimer / 20)})`;
+        ctx.lineWidth = 3;
+        ctx.setLineDash([6, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    // 17x12 Pixel Map based directly on the classic Flappy Bird Sprite
+    const sprite = [
+        "......BBBBBBB....",
+        "....BBMMMMMMMBB..",
+        "...BMMMMMMMBWWBB.",
+        "..BMMMMMMMMWBLWWB",
+        ".BWWWWMMMMMWBLWWB",
+        "BWWWWWWMMMMWWWWWB",
+        "BWWWWWWMMMRRRRRRRB",
+        "BWWWWWWMMBRRRRRRRB",
+        ".BWWWWOMBRRRRRRRB",
+        "..BBBOOOBBBBBBBB.",
+        "...BBOOOOOBB.....",
+        "....BBBBBBB......"
+    ];
+
+    const pixelSize = 2;
+    const offsetX = -17;
+    const offsetY = -12;
+
+    for(let r = 0; r < sprite.length; r++){
+        for(let c = 0; c < sprite[r].length; c++){
+            const char = sprite[r][c];
+            if(char === ".") continue;
+
+            let color = "#000000";
+            if(char === "B") color = "#000000";
+            else if(char === "M") color = s.main;
+            else if(char === "O") color = "#f97316";
+            else if(char === "W") color = s.wing;
+            else if(char === "L") color = "#a5f3fc";
+            else if(char === "R") color = "#dc2626";
+
+            ctx.fillStyle = color;
+            ctx.fillRect(offsetX + c * pixelSize, offsetY + r * pixelSize, pixelSize, pixelSize);
+        }
+    }
+
+    // Golden Crown overlay if Golden skin is selected
+    if(selectedSkin === "gold"){
+        ctx.fillStyle = "#facc15";
+        ctx.beginPath();
+        ctx.moveTo(-8, -14);
+        ctx.lineTo(-5, -23);
+        ctx.lineTo(0, -17);
+        ctx.lineTo(5, -23);
+        ctx.lineTo(8, -14);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    ctx.restore();
+}
+
+function drawCoins(){
+    coinsList.forEach(c=>{
+        ctx.save();
+        ctx.translate(c.x, c.y);
+        ctx.scale(Math.abs(Math.cos(c.rotation))*.8+.2, 1);
+        ctx.fillStyle="#f59e0b";
+        ctx.beginPath();
+        ctx.arc(0,0,10,0,Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle="#fef08a";
+        ctx.font="bold 12px Arial";
+        ctx.textAlign="center";
+        ctx.fillText("🪙", 0, 4);
+        ctx.restore();
+    });
+}
+
+function drawPowerups(){
+    powerups.forEach(p=>{
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.fillStyle=p.type==="shield"?"rgba(59,130,246,.9)":"rgba(168,85,247,.9)";
+        ctx.beginPath();
+        ctx.arc(0, 0, 14, 0, Math.PI*2);
+        ctx.fill();
+        ctx.font="16px Arial";
+        ctx.textAlign="center";
+        ctx.fillText(p.type==="shield"?"🛡️":"🧲", 0, 5);
+        ctx.restore();
+    });
+}
+
+function draw(){
+    ctx.save();
+    if(shake>0){
+        ctx.translate((Math.random()-.5)*10, (Math.random()-.5)*10);
+    }
+
+    drawBackground();
+    pipes.forEach(p=>{ drawPipe(p.x, p.gapY, p.gap); });
+    drawCoins();
+    drawPowerups();
+
+    particles.forEach(p=>{
+        ctx.globalAlpha=Math.max(0,p.life);
+        ctx.fillStyle=p.color;
+        ctx.fillRect(p.x, p.y, 4, 4);
+    });
+    ctx.globalAlpha=1;
+
+    popups.forEach(p=>{
+        ctx.globalAlpha=Math.max(0,p.life);
+        ctx.fillStyle=p.color;
+        ctx.font="bold 18px Arial";
+        ctx.textAlign="center";
+        ctx.fillText(p.text, p.x, p.y);
+    });
+    ctx.globalAlpha=1;
+
+    drawBird();
+
+    if(running){
+        ctx.textAlign="center";
+        ctx.font="900 40px Arial";
+        ctx.lineWidth=5;
+        ctx.strokeStyle="black";
+        ctx.fillStyle="white";
+        ctx.strokeText(score, 200, 58);
+        ctx.fillText(score, 200, 58);
+
+        if(combo>=3){
+            ctx.font="bold 14px Arial";
+            ctx.fillStyle="#fbbf24";
+            ctx.fillText(`🔥 COMBO x${combo}`, 200, 82);
+        }
+
+        if(shield){
+            ctx.font="bold 13px Arial";
+            ctx.fillStyle="#bfdbfe";
+            ctx.fillText(`🛡️ ${Math.ceil(shieldTimer/60)}s`, 70, 35);
+        }
+
+        if(magnetTimer>0){
+            ctx.font="bold 13px Arial";
+            ctx.fillStyle="#e9d5ff";
+            ctx.fillText(`🧲 ${Math.ceil(magnetTimer/60)}s`, 330, 35);
+        }
+    }
+    ctx.restore();
+
+    if(flash>0){
+        ctx.fillStyle="rgba(255,255,255,.18)";
+        ctx.fillRect(0,0,W,H);
+    }
+}
+
+function loop(){
+    if(!running) return;
+    if(paused){
+        draw();
+        return;
+    }
+    update();
+    draw();
+    if(running){
+        requestAnimationFrame(loop);
+    }
+}
+
+updateMenu();
+renderSkins();
+renderShop();
+renderAchievements();
+renderStats();
+draw();
+</script>
+</body>
+</html>
